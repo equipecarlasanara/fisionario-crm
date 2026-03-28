@@ -363,19 +363,38 @@ let leads, nextId, currentFilter='todos', currentDetail=null, activeTab='funil';
 
 async function loadLeads(){
   try{
-    const r=await window.storage.get('fisionario_leads_v1');
-    if(r&&r.value){const p=JSON.parse(r.value);leads=p.leads;nextId=p.nextId||100;}
-    else{leads=SAMPLE;nextId=50;}
-  }catch(e){leads=SAMPLE;nextId=50;}
+    const res = await fetch('/api/leads');
+    if(res.ok) { leads = await res.json(); }
+    else { leads = SAMPLE; }
+  }catch(e){ leads = SAMPLE; }
   renderAll();
   switchPage('comunicacoes', document.querySelector('.sidebar-item.active'));
 }
 
-async function saveLeads(){
-  try{
-    await window.storage.set('fisionario_leads_v1',JSON.stringify({leads,nextId}));
+async function syncLead(lead) {
+  try {
+    await fetch('/api/leads/' + lead.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead)
+    });
     const s=document.getElementById('saving');s.classList.add('show');setTimeout(()=>s.classList.remove('show'),1800);
-  }catch(e){}
+  } catch(e) {}
+}
+
+async function apiDeleteLead(id) {
+  try { await fetch('/api/leads/' + id, {method: 'DELETE'}); } catch(e) {}
+}
+
+async function apiCreateLead(lead) {
+  try {
+    const res = await fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead)
+    });
+    return await res.json();
+  } catch(e) { return lead; }
 }
 
 function getDaysClass(days){if(days>=7)return 'urgent';if(days>=3)return 'warning';return '';}
@@ -521,7 +540,7 @@ function drop(ev, stage) {
     l.stage = stage;
     l.lastContact = todayStr();
     l.hist.push(`Movida via arraste para: ${STAGES.find(s=>s.id===stage).label}`);
-    saveLeads();
+    syncLead(l);
     renderAll();
   }
 }
@@ -569,7 +588,7 @@ function quickFollow(id){
   const l=leads.find(x=>x.id===id);if(!l)return;
   l.lastContact=todayStr();
   l.hist.push('Contato registrado via follow-up');
-  saveLeads();renderAll();
+  syncLead(l);renderAll();
 }
 
 function renderDiags(){
@@ -916,39 +935,43 @@ function addHist(){
   currentDetail.hist.push(inp.value.trim());
   currentDetail.lastContact=todayStr();
   inp.value='';
-  saveLeads();renderHist();renderStats();
+  syncLead(currentDetail);renderHist();renderStats();
 }
 
 function moveTo(stage){
   currentDetail.stage=stage;
   currentDetail.lastContact=todayStr();
   currentDetail.hist.push(`Movida para: ${STAGES.find(s=>s.id===stage).label}`);
-  saveLeads();closeModals();renderAll();
+  syncLead(currentDetail);closeModals();renderAll();
 }
 
 function deleteLead(){
+  apiDeleteLead(currentDetail.id);
   leads=leads.filter(l=>l.id!==currentDetail.id);
-  saveLeads();closeModals();renderAll();
+  closeModals();renderAll();
 }
 
-function saveLead(){
+async function saveLead(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert('Informe o nome da lead');return;}
   const sel=document.getElementById('f-origem');
   const origemVal=sel.options[sel.selectedIndex].value;
   const obs=document.getElementById('f-obs').value.trim();
   const ds=document.getElementById('f-data').value.trim();
-  leads.unshift({
-    id:nextId++,name,
+  const newL = {
+    name,
     ig:document.getElementById('f-ig').value||'—',
     wpp:document.getElementById('f-wpp').value.replace(/\D/g,'')||'',
     origem:origemVal,
     interesse:document.getElementById('f-interesse').value||'',
     stage:'novo',lastContact:todayStr(),dateAdded:ds||todayStr(),
     hist:obs?[obs]:[]
-  });
+  };
+  const created = await apiCreateLead(newL);
+  leads.unshift(created);
   ['f-name','f-ig','f-wpp','f-interesse','f-obs','f-data'].forEach(id=>document.getElementById(id).value='');
-  saveLeads();closeModals();renderAll();
+  const s=document.getElementById('saving');s.classList.add('show');setTimeout(()=>s.classList.remove('show'),1800);
+  closeModals();renderAll();
 }
 
 function copyScript(id){
