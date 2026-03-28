@@ -1,0 +1,966 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+:root {
+  --font-sans: 'Inter', sans-serif;
+  --color-border-tertiary: #E2E8F0;
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #64748B;
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F8FAFC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--color-background-secondary);color:var(--color-text-primary);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--color-border-tertiary);display:flex;flex-direction:column;padding:1rem 0;flex-shrink:0;overflow-y:auto}
+.sidebar-item{padding:8px 16px;display:flex;align-items:center;gap:12px;color:#475569;font-size:13px;cursor:pointer;text-decoration:none;transition:background 0.1s}
+.sidebar-item:hover,.sidebar-item.active{background:#F1F5F9;color:#0F172A;font-weight:600}
+.sidebar-item.active{border-left:3px solid #2563EB;padding-left:13px}
+.page{display:none;animation:fadeIn 0.2s}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.sidebar-section{font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;padding:16px 16px 8px;letter-spacing:0.05em}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:#fff;border-bottom:1px solid var(--color-border-tertiary)}
+.wrap{padding:20px 24px;overflow-y:auto;flex:1}
+
+.btn{padding:7px 14px;font-size:13px;border-radius:6px;border:1px solid var(--color-border-tertiary);background:#fff;color:var(--color-text-primary);cursor:pointer;font-weight:500;transition:all 0.15s}
+.btn:hover{background:#F1F5F9}
+.btn-primary{background:#2563EB;border-color:#2563EB;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-wpp{background:#25D366;border-color:#25D366;color:#fff}
+.btn-wpp:hover{background:#1db954}
+
+.tabs{display:flex;gap:24px;margin-bottom:20px;border-bottom:1px solid var(--color-border-tertiary)}
+.tab{padding:8px 0;font-size:14px;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;border-top:none;border-left:none;border-right:none;font-weight:500}
+.tab.active{color:#2563EB;border-bottom-color:#2563EB}
+.tab:hover:not(.active){color:var(--color-text-primary)}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:1.5rem}
+.stat{background:#fff;border:1px solid var(--color-border-tertiary);border-radius:8px;padding:1rem}
+.stat-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px;font-weight:500}
+.stat-val{font-size:24px;font-weight:600;color:var(--color-text-primary)}
+
+.funnel{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;height:calc(100vh - 220px)}
+.col{background:transparent;width:300px;flex-shrink:0;display:flex;flex-direction:column;border-top:3px solid #E2E8F0;padding-top:12px;transition:background 0.2s}
+.col.drag-over{background:rgba(226,232,240,0.5);border-radius:8px}
+.col-header{text-align:center;margin-bottom:16px}
+.col-title{font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.04em}
+.col-count{font-size:11px;color:#94A3B8;display:block;margin-top:2px}
+
+.card{background:#fff;border:1px solid #E2E8F0;border-radius:6px;padding:12px;margin-bottom:10px;cursor:grab;transition:box-shadow 0.15s, transform 0.15s}
+.card:active{cursor:grabbing}
+.card:hover{box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);transform:translateY(-1px);border-color:#CBD5E1}
+.card-header{display:flex;gap:10px}
+.avatar-wrap{position:relative;width:32px;height:32px;flex-shrink:0}
+.avatar{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
+.avatar-icon{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:#25D366;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px}
+.card-info{flex:1;min-width:0}
+.card-author{font-size:11px;color:#64748B;margin-bottom:2px;display:flex;justify-content:space-between}
+.card-name{font-size:13px;font-weight:500;color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-sub{font-size:11px;color:#64748B;margin-top:2px}
+.card-msg{font-size:12px;color:#475569;margin-top:8px;background:#F8FAFC;padding:6px 8px;border-radius:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.alert-badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;background:#FEF2F2;color:#EF4444;display:inline-block;margin-top:6px}
+
+.follow-section{margin-bottom:1.5rem}
+.follow-section h3{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.alert-badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.follow-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.follow-card:hover{border-color:var(--color-border-primary)}
+.follow-card.urgent{border-left:3px solid #dc2626}
+.follow-card.warning{border-left:3px solid #BA7517}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.follow-info{flex:1;min-width:0}
+.follow-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.follow-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.follow-days{text-align:right;flex-shrink:0}
+.days-num{font-size:20px;font-weight:500}
+.days-label{font-size:10px;color:var(--color-text-secondary)}
+.qa-btn{font-size:11px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:var(--font-sans)}
+.qa-btn:hover{background:var(--color-background-secondary)}
+.qa-btn-wpp{border-color:#25D366;color:#1b5e20}
+.qa-btn-wpp:hover{background:#e8f5e9}
+.empty-state{text-align:center;padding:2rem;color:var(--color-text-secondary);font-size:13px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-bg.open{display:flex}
+.modal{background:#ffffff;border-radius:12px;border:1px solid #E2E8F0;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1),0 8px 10px -6px rgba(0,0,0,0.1);position:relative}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:20px;color:#0F172A;display:flex;align-items:center;justify-content:space-between}
+.modal-close{cursor:pointer;background:none;border:none;font-size:20px;color:#94A3B8}
+.modal-close:hover{color:#0F172A}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:500;color:#475569;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid #CBD5E1;background:#F8FAFC;color:#0F172A;font-family:var(--font-sans);transition:border-color 0.2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#2563EB;background:#fff}
+.field textarea{min-height:80px;resize:vertical}
+.modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid #E2E8F0}
+.hist-item{border-left:3px solid #3B82F6;padding:10px 14px;margin-bottom:10px;background:#F1F5F9;border-radius:0 8px 8px 0}
+.hist-text{font-size:13px;color:#334155;line-height:1.4}
+.hist-date{font-size:11px;color:#64748B;margin-top:4px}
+.move-btn{font-size:10px;padding:3px 8px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-family:var(--font-sans);margin-right:4px;margin-bottom:4px}
+.saving{position:fixed;bottom:16px;right:16px;background:#059669;color:#fff;font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);z-index:200;opacity:0;transition:opacity .3s}
+.saving.show{opacity:1}
+.search{padding:6px 12px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)}
+.tag-filter{padding:4px 12px;font-size:12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer;font-family:var(--font-sans)}
+.tag-filter.active{background:#2563EB;border-color:#2563EB;color:#fff}
+.section-title{font-size:12px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+.page{display:none;animation:fadeIn 0.3s ease-out}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<div class="sidebar">
+  <div style="padding:0 20px 20px;font-weight:600;font-size:16px;color:#0F172A;display:flex;align-items:center;gap:10px">
+    <div style="width:24px;height:24px;background:#2563EB;border-radius:6px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px">✦</div> Fisionário
+  </div>
+  <div class="sidebar-item active" onclick="switchPage('comunicacoes',this)"><span style="font-size:16px">💬</span> Comunicações <span style="margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;padding:2px 6px;font-size:10px;font-weight:600" id="sb-urgentes">0</span></div>
+  <div class="sidebar-item" onclick="switchPage('funis',this)"><span style="font-size:16px">📊</span> Funis e CRM</div>
+  <div class="sidebar-item" onclick="switchPage('calendario',this)"><span style="font-size:16px">📅</span> Calendário</div>
+  <div class="sidebar-item" onclick="switchPage('listas',this)"><span style="font-size:16px">📋</span> Listas</div>
+  
+  <div class="sidebar-section">Ferramentas</div>
+  <div class="sidebar-item" onclick="switchPage('insights',this)"><span style="font-size:16px">📈</span> Insights</div>
+
+  <div style="margin-top:auto">
+    <div class="sidebar-item" onclick="switchPage('configuracoes',this)"><span style="font-size:16px">⚙️</span> Configurações</div>
+    <div class="sidebar-item"><span style="font-size:16px">❓</span> Ajuda</div>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="topbar">
+    <div style="font-size:16px;font-weight:500">Pipeline Comercial</div>
+    <div class="topbar-actions">
+      <button class="btn btn-wpp" onclick="showQR()">Copiar Link WhatsApp</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Novo lead</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    
+    <!-- PÁGINA: FUNIS -->
+    <div id="page-funis" class="page">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('funil',this)">Visualização Kanban</button>
+        <button class="tab" onclick="switchTab('followup',this)" id="tab-follow">Lista de Acompanhamento</button>
+      </div>
+
+      <div id="view-funil">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+          <input class="search" id="search" placeholder="Pesquisar..." oninput="renderFunil()" style="flex:1;min-width:140px;max-width:240px;padding:8px 12px;font-size:13px;border-radius:6px;border:1px solid var(--color-border-tertiary)">
+          <select id="filter-month" onchange="renderFunil()" style="padding:8px 12px;font-size:13px;border-radius:6px;border:1px solid var(--color-border-tertiary);background:#fff">
+
+        <option value="todos">Qualquer Mês</option>
+        <option value="01">Janeiro</option>
+        <option value="02">Fevereiro</option>
+        <option value="03" selected>Março</option>
+        <option value="04">Abril</option>
+        <option value="05">Maio</option>
+        <option value="06">Junho</option>
+        <option value="07">Julho</option>
+        <option value="08">Agosto</option>
+        <option value="09">Setembro</option>
+        <option value="10">Outubro</option>
+        <option value="11">Novembro</option>
+        <option value="12">Dezembro</option>
+      </select>
+        <div style="display:flex;gap:4px">
+          <button class="tag-filter active" onclick="setFilter('todos',this)">Todos</button>
+          <button class="tag-filter" onclick="setFilter('instagram',this)">Instagram</button>
+          <button class="tag-filter" onclick="setFilter('whatsapp',this)">WhatsApp</button>
+          <button class="tag-filter" onclick="setFilter('formulario',this)">Formulário</button>
+          <button class="tag-filter" onclick="setFilter('webinario',this)">Webnário</button>
+        </div>
+        <button class="btn" style="padding:6px 12px;font-size:12px;background:#fff;border:1px solid var(--color-border-tertiary);border-radius:6px;margin-left:auto" onclick="setFilter('todos',document.querySelector('.tag-filter.active'));document.getElementById('search').value='';document.getElementById('filter-month').value='todos';renderFunil()">Limpar</button>
+      </div>
+      <div class="funnel" id="funnel"></div>
+    </div>
+
+    <div id="view-followup" style="display:none">
+      <div id="followup-view"></div>
+    </div>
+    </div> <!-- /PÁGINA FUNIS -->
+    
+    <!-- PÁGINA: INSIGHTS -->
+    <div id="page-insights" class="page">
+      <div class="stats" id="stats"></div>
+      <div id="kpi-panel" style="margin-bottom:1.5rem"></div>
+      <div id="diags-view"></div>
+    </div>
+
+    <!-- PÁGINA: COMUNICACÕES -->
+    <div id="page-comunicacoes" class="page active">
+      <h2 style="font-weight:500;margin-bottom:1rem;color:#0F172A">💬 Comunicações (Inbox)</h2>
+      <div id="comms-view" style="display:flex;height:calc(100vh - 180px);background:#fff;border-radius:8px;border:1px solid #E2E8F0;overflow:hidden"></div>
+    </div>
+
+    <!-- PÁGINA: CALENDÁRIO -->
+    <div id="page-calendario" class="page">
+      <h2 style="font-weight:500;margin-bottom:1rem;color:#0F172A">📅 Meu Calendário de Ações</h2>
+      <div id="calendar-view"></div>
+    </div>
+
+    <!-- PÁGINA: LISTAS (CSV) -->
+    <div id="page-listas" class="page">
+      <h2 style="font-weight:500;margin-bottom:1rem;color:#0F172A">📋 Listas & Importação</h2>
+      <div id="listas-view"></div>
+    </div>
+    
+    <!-- PÁGINA: CONFIGURAÇÕES -->
+    <div id="page-configuracoes" class="page">
+      <h2 style="font-weight:500;margin-bottom:1rem;color:#0F172A">⚙️ Integrações do Sistema</h2>
+      <div id="config-view"></div>
+    </div>
+    
+  </div>
+</div>
+
+<div class="saving" id="saving">Salvo!</div>
+
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h2>Novo lead</h2>
+    <div class="field"><label>Nome</label><input id="f-name" placeholder="Nome completo"></div>
+    <div class="field"><label>@ Instagram</label><input id="f-ig" placeholder="@usuario"></div>
+    <div class="field"><label>WhatsApp</label><input id="f-wpp" placeholder="(11) 99999-9999"></div>
+    <div class="field"><label>Origem</label>
+      <select id="f-origem">
+        <option value="instagram">Instagram — DM</option>
+        <option value="instagram">Instagram — Comentário</option>
+        <option value="instagram">Instagram — Story</option>
+        <option value="whatsapp">WhatsApp — Link</option>
+        <option value="whatsapp">WhatsApp — Indicação</option>
+        <option value="formulario">Formulário público</option>
+        <option value="webinario">Webnário</option>
+        <option value="aplicacao">Aplicação</option>
+      </select>
+    </div>
+    <div class="field"><label>Qualificada para / Interesse</label><input id="f-interesse" placeholder="Ex: Mentoria Semestral, Consultoria..."></div>
+    <div class="field"><label>Data que entrou no funil (em branco = hoje)</label><input id="f-data" placeholder="DD/MM/AAAA"></div>
+    <div class="field"><label>Observação inicial</label><textarea id="f-obs" placeholder="O que ela disse, contexto..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLead()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="detailModal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
+      <div id="d-avatar" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0"></div>
+      <div>
+        <div id="d-name" style="font-size:15px;font-weight:500;color:var(--color-text-primary)"></div>
+        <div id="d-sub" style="font-size:12px;color:var(--color-text-secondary)"></div>
+      </div>
+    </div>
+    <div id="d-badges" style="margin-bottom:1rem;display:flex;gap:6px;flex-wrap:wrap"></div>
+
+    <div class="field"><label>Mover para etapa</label>
+      <div style="margin-top:4px" id="moveButtons"></div>
+    </div>
+
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">Contato</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div style="font-size:13px;color:var(--color-text-primary)" id="d-wpp-val"></div>
+        <button id="d-wpp-btn" class="qa-btn qa-btn-wpp" style="display:none">Abrir WhatsApp</button>
+        <button id="d-ig-btn" class="qa-btn" style="border-color:#e1306c;color:#e1306c;display:none">Abrir Instagram</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px">Qualificada para / Interesse</div>
+      <div style="font-size:13px;color:var(--color-text-primary)" id="d-interesse-val"></div>
+    </div>
+
+    <div style="margin-bottom:.75rem">
+      <button class="qa-btn" style="width:100%;text-align:center;padding:8px" onclick="document.getElementById('scripts-section').style.display=document.getElementById('scripts-section').style.display==='none'?'block':'none'">Ver Modelos de Mensagem (Copiar)</button>
+      <div id="scripts-section" style="display:none;margin-top:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px;font-size:11px">
+        <div style="margin-bottom:8px"><b>Mod. A (Curiosidade):</b> <span id="scr-a" style="cursor:pointer;color:#2563EB" onclick="copyScript('scr-a')"></span></div>
+        <div style="margin-bottom:8px"><b>Mod. B (Dor):</b> <span id="scr-b" style="cursor:pointer;color:#2563EB" onclick="copyScript('scr-b')"></span></div>
+        <div style="margin-bottom:8px"><b>Mod. C (Prova Social):</b> <span id="scr-c" style="cursor:pointer;color:#2563EB" onclick="copyScript('scr-c')"></span></div>
+        <div style="margin-bottom:8px"><b>Mod. D (Reconexão):</b> <span id="scr-d" style="cursor:pointer;color:#2563EB" onclick="copyScript('scr-d')"></span></div>
+        <div><b>Mod. E (Valor):</b> <span id="scr-e" style="cursor:pointer;color:#2563EB" onclick="copyScript('scr-e')"></span></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;font-weight:500">Histórico de interações</div>
+      <div id="d-hist"></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="new-hist" style="flex:1;padding:6px 10px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans)" placeholder="Registrar nova interação...">
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 12px" onclick="addHist()">Salvar</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" style="color:#dc2626;border-color:#dc2626" onclick="deleteLead()">Remover</button>
+      <button class="btn" onclick="closeModals()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="qrModal">
+  <div class="modal" style="max-width:340px">
+    <h2>Link de entrada WhatsApp</h2>
+    <p style="font-size:12px;color:var(--color-text-secondary);margin-bottom:1rem">Compartilhe o link. A lead chega com contexto no seu WhatsApp e você a cadastra em segundos.</p>
+    <div style="text-align:center;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;margin-bottom:1rem">
+      <svg viewBox="0 0 60 60" width="100" height="100" style="display:block;margin:0 auto 8px">
+        <rect x="2" y="2" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2"/>
+        <rect x="6" y="6" width="12" height="12" fill="#2563EB"/>
+        <rect x="38" y="2" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2"/>
+        <rect x="42" y="6" width="12" height="12" fill="#2563EB"/>
+        <rect x="2" y="38" width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2"/>
+        <rect x="6" y="42" width="12" height="12" fill="#2563EB"/>
+        <rect x="26" y="2" width="4" height="4" fill="#2563EB"/><rect x="26" y="8" width="4" height="4" fill="#2563EB"/>
+        <rect x="32" y="8" width="4" height="4" fill="#2563EB"/><rect x="26" y="14" width="8" height="4" fill="#2563EB"/>
+        <rect x="26" y="26" width="4" height="4" fill="#2563EB"/><rect x="32" y="26" width="4" height="4" fill="#2563EB"/>
+        <rect x="38" y="26" width="4" height="4" fill="#2563EB"/><rect x="44" y="26" width="8" height="4" fill="#2563EB"/>
+        <rect x="38" y="32" width="8" height="4" fill="#2563EB"/><rect x="26" y="32" width="8" height="4" fill="#2563EB"/>
+        <rect x="26" y="38" width="4" height="8" fill="#2563EB"/><rect x="32" y="38" width="4" height="4" fill="#2563EB"/>
+        <rect x="38" y="44" width="4" height="8" fill="#2563EB"/><rect x="44" y="44" width="8" height="8" fill="#2563EB"/>
+        <rect x="32" y="44" width="4" height="8" fill="#2563EB"/>
+      </svg>
+      <div style="font-size:11px;color:#2563EB;word-break:break-all">wa.me/5511999990000?text=Oi!+Vim+pelo+Fisionário</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModals()">Fechar</button>
+      <button class="btn btn-primary" onclick="copyLink()">Copiar link</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGES=[
+  {id:'novo',label:'ETAPA DE LEADS DE ENTRADA',color:'#64748B',bg:'#CBD5E1', borderTop: '#94A3B8'},
+  {id:'contato',label:'CONTATO INICIAL',color:'#3B82F6',bg:'#DBEAFE', borderTop: '#60A5FA'},
+  {id:'proposta',label:'DISCUSSÕES / CALL',color:'#EAB308',bg:'#FEF9C3', borderTop: '#FDE047'},
+  {id:'fechado',label:'TOMADA DE DECISÃO (GANHO)',color:'#22C55E',bg:'#DCFCE7', borderTop: '#4ADE80'},
+  {id:'perdido',label:'PERDIDO NO PROCESSO',color:'#EF4444',bg:'#FEE2E2', borderTop: '#F87171'}
+];
+
+const today=new Date();
+function daysAgo(str){
+  if(!str) return 0;
+  const p=str.split('/');
+  if(p.length<3) return 0;
+  const d=new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+  return Math.max(0,Math.floor((today-d)/(1000*60*60*24)));
+}
+function todayStr(){const d=new Date();return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+
+const SAMPLE=[
+  {id:1,name:'Ana Paula',ig:'@anapaula',wpp:'11988881111',origem:'instagram',interesse:'Consulta inicial',stage:'novo',lastContact:'25/03/2026',dateAdded:'20/03/2026',hist:['Curtiu 3 posts seguidos','Mandou DM perguntando sobre o programa']},
+  {id:2,name:'Carla Mendes',ig:'@carlam',wpp:'11977772222',origem:'whatsapp',interesse:'Programa completo',stage:'contato',lastContact:'17/03/2026',dateAdded:'17/03/2026',hist:['Entrou pelo link do WhatsApp','Respondeu mensagem de boas-vindas']},
+  {id:3,name:'Juliana Reis',ig:'@jureis',wpp:'11966663333',origem:'instagram',interesse:'Acompanhamento mensal',stage:'proposta',lastContact:'10/03/2026',dateAdded:'05/03/2026',hist:['Clicou no link da bio','Pediu mais informações','Proposta enviada']},
+  {id:4,name:'Fernanda Lima',ig:'@ferlima',wpp:'11955554444',origem:'formulario',interesse:'Consulta inicial',stage:'fechado',lastContact:'25/03/2026',dateAdded:'20/02/2026',hist:['Entrou pelo formulário','Fechou no primeiro contato']},
+  {id:5,name:'Priscila Santos',ig:'@prisantos',wpp:'',origem:'instagram',interesse:'Não definido',stage:'perdido',lastContact:'20/03/2026',dateAdded:'02/03/2026',hist:['Viu story, perguntou valor','Sumiu após proposta']},
+  {id:6,name:'Renata Costa',ig:'@renata_c',wpp:'11944445555',origem:'instagram',interesse:'Programa completo',stage:'contato',lastContact:'05/03/2026',dateAdded:'25/02/2026',hist:['Comentou no post']},
+  {id:7,name:'Tatiane Moura',ig:'@tatiane.m',wpp:'11933336666',origem:'formulario',interesse:'Acompanhamento mensal',stage:'novo',lastContact:'24/03/2026',dateAdded:'24/03/2026',hist:['Entrou pelo formulário público']},
+];
+
+let leads, nextId, currentFilter='todos', currentDetail=null, activeTab='funil';
+
+async function loadLeads(){
+  try{
+    const r=await window.storage.get('fisionario_leads_v1');
+    if(r&&r.value){const p=JSON.parse(r.value);leads=p.leads;nextId=p.nextId||100;}
+    else{leads=SAMPLE;nextId=50;}
+  }catch(e){leads=SAMPLE;nextId=50;}
+  renderAll();
+  switchPage('comunicacoes', document.querySelector('.sidebar-item.active'));
+}
+
+async function saveLeads(){
+  try{
+    await window.storage.set('fisionario_leads_v1',JSON.stringify({leads,nextId}));
+    const s=document.getElementById('saving');s.classList.add('show');setTimeout(()=>s.classList.remove('show'),1800);
+  }catch(e){}
+}
+
+function getDaysClass(days){if(days>=7)return 'urgent';if(days>=3)return 'warning';return '';}
+
+function filteredLeads(){
+  const q=(document.getElementById('search')||{}).value||'';
+  const monthFilter=(document.getElementById('filter-month')||{}).value||'todos';
+  
+  return leads.filter(l=>{
+    const mF=currentFilter==='todos'||l.origem===currentFilter;
+    const mQ=!q||l.name.toLowerCase().includes(q.toLowerCase())||l.ig.toLowerCase().includes(q.toLowerCase());
+    
+    let mMonth = true;
+    if(monthFilter !== 'todos') {
+      const dStr = l.dateAdded || l.lastContact || '';
+      const p = dStr.split('/');
+      if(p.length >= 2) {
+        mMonth = p[1] === monthFilter;
+      }
+    }
+    
+    return mF&&mQ&&mMonth;
+  });
+}
+
+function originBadge(o){
+  if(o==='instagram') return '<span class="badge badge-ig">Instagram</span>';
+  if(o==='whatsapp') return '<span class="badge badge-wpp">WhatsApp</span>';
+  if(o==='webinario') return '<span class="badge" style="background:#fef3c7;color:#92400e">Webnário</span>';
+  if(o==='aplicacao') return '<span class="badge" style="background:#e0f2fe;color:#0369a1">Aplicação</span>';
+  return '<span class="badge badge-form">Formulário</span>';
+}
+
+function renderStats(){
+  const total=leads.length;
+  const fechados=leads.filter(l=>l.stage==='fechado').length;
+  const ativos=leads.filter(l=>l.stage!=='fechado'&&l.stage!=='perdido');
+  const todayLeads = leads.filter(l => l.dateAdded === todayStr()).length;
+  const todayAct = leads.filter(l => l.lastContact === todayStr() && l.dateAdded !== todayStr()).length;
+  const pendingFollow=ativos.filter(l=>daysAgo(l.lastContact)>=3).length;
+  const urgentes=ativos.filter(l=>daysAgo(l.lastContact)>=7).length;
+  document.getElementById('stats').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:16px;margin-bottom:1.5rem">
+      <div style="background:#0F172A;border-radius:12px;padding:16px;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
+        <div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:8px">Total de leads</div>
+        <div style="font-size:32px;font-weight:600;color:#10B981">${total}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">na base ativa</div>
+      </div>
+      <div style="background:#0F172A;border-radius:12px;padding:16px;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
+        <div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:8px">Fechados (Ganhos)</div>
+        <div style="font-size:32px;font-weight:600;color:#8B5CF6">${fechados}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">${total?Math.round(fechados/total*100):0}% conversão</div>
+      </div>
+      <div style="background:#0F172A;border-radius:12px;padding:16px;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
+        <div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:8px">Calls / Apresentação</div>
+        <div style="font-size:32px;font-weight:600;color:#3B82F6">${leads.filter(l=>l.stage==='proposta').length}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">leads negociando</div>
+      </div>
+      <div style="background:#0F172A;border-radius:12px;padding:16px;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
+        <div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:8px">Ativações Hoje</div>
+        <div style="font-size:32px;font-weight:600;color:${(todayLeads+todayAct)>=40?'#10B981':'#EAB308'}">${todayLeads+todayAct}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">Meta de 40 / dia</div>
+      </div>
+      <div style="background:#0F172A;border-radius:12px;padding:16px;color:#fff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
+        <div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:8px">Leads Atrasados</div>
+        <div style="font-size:32px;font-weight:600;color:${urgentes>0?'#EF4444':'#10B981'}">${urgentes}</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">+7 dias sem resposta</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('kpi-panel').innerHTML='';
+  document.getElementById('sb-urgentes').textContent=urgentes;
+  document.getElementById('sb-urgentes').style.display=urgentes>0?'inline-block':'none';
+  const tf=document.getElementById('tab-follow');
+  tf.textContent=urgentes>0?`Follow-up (${urgentes})`:pendingFollow>0?`Follow-up (${pendingFollow})`:'Follow-up';
+}
+
+function renderFunil(){
+  const fl=filteredLeads();
+  document.getElementById('funnel').innerHTML=STAGES.map(st=>{
+    const cards=fl.filter(l=>l.stage===st.id);
+    return `<div class="col" style="border-top-color:${st.borderTop};" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="drop(event, '${st.id}')">
+      <div class="col-header">
+        <span class="col-title">${st.label}</span>
+        <span class="col-count">${cards.length} leads</span>
+      </div>
+      ${cards.map(l=>{
+        const days=daysAgo(l.lastContact);
+        const ac=(st.id!=='fechado'&&st.id!=='perdido')?getDaysClass(days):'';
+        
+        let iconHtml = '';
+        if(l.origem === 'whatsapp') iconHtml = '<div class="avatar-icon" style="background:#25D366">💬</div>';
+        else if(l.origem === 'instagram') iconHtml = '<div class="avatar-icon" style="background:#E1306C">📷</div>';
+        else iconHtml = '<div class="avatar-icon" style="background:#3B82F6">📋</div>';
+
+        const lastInteraction = l.hist.length > 0 ? l.hist[l.hist.length-1] : 'Lead cadastrado';
+
+        return `<div class="card" draggable="true" ondragstart="drag(event, ${l.id})" onclick="openDetail(${l.id})">
+          <div class="card-header">
+            <div class="avatar-wrap">
+              <div class="avatar" style="background:${st.color}">${l.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+              ${iconHtml}
+            </div>
+            <div class="card-info">
+              <div class="card-author"><span>Atendimento Fisionário</span> <span>${l.lastContact?l.lastContact.slice(0,5):''}</span></div>
+              <div class="card-name">${l.name} ${l.ig&&l.ig!=='—'?'| '+l.ig:''}</div>
+              ${ac==='urgent'?'<div class="alert-badge">Atrasado (+7d)</div>':ac==='warning'?'<div class="alert-badge" style="background:#FEF9C3;color:#CA8A04">Atenção (+3d)</div>':''}
+            </div>
+          </div>
+          <div class="card-msg">" ${lastInteraction} "</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function allowDrop(ev) {
+  ev.preventDefault();
+  if(!ev.currentTarget.classList.contains('drag-over')) {
+    ev.currentTarget.classList.add('drag-over');
+  }
+}
+
+function dragLeave(ev) {
+  ev.currentTarget.classList.remove('drag-over');
+}
+
+function drag(ev, id) {
+  ev.dataTransfer.setData("text", id);
+  // Add styling to body to indicate dragging
+  document.body.style.cursor = 'grabbing';
+}
+
+function drop(ev, stage) {
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  document.body.style.cursor = 'default';
+  
+  var id = parseInt(ev.dataTransfer.getData("text"));
+  const l = leads.find(x => x.id === id);
+  if(l && l.stage !== stage) {
+    l.stage = stage;
+    l.lastContact = todayStr();
+    l.hist.push(`Movida via arraste para: ${STAGES.find(s=>s.id===stage).label}`);
+    saveLeads();
+    renderAll();
+  }
+}
+
+function renderFollowUp(){
+  const ativos=leads.filter(l=>l.stage!=='fechado'&&l.stage!=='perdido');
+  const urgent=ativos.filter(l=>daysAgo(l.lastContact)>=7).sort((a,b)=>daysAgo(b.lastContact)-daysAgo(a.lastContact));
+  const warning=ativos.filter(l=>{const d=daysAgo(l.lastContact);return d>=3&&d<7;}).sort((a,b)=>daysAgo(b.lastContact)-daysAgo(a.lastContact));
+  const ok=ativos.filter(l=>daysAgo(l.lastContact)<3);
+  let html='';
+  if(urgent.length) html+=`<div class="follow-section"><h3>Urgente — mais de 7 dias sem contato <span class="alert-badge" style="background:#fef2f2;color:#dc2626">${urgent.length}</span></h3>${urgent.map(l=>fCard(l,'urgent')).join('')}</div>`;
+  if(warning.length) html+=`<div class="follow-section"><h3>Atenção — 3 a 7 dias <span class="alert-badge" style="background:#fffbeb;color:#92400e">${warning.length}</span></h3>${warning.map(l=>fCard(l,'warning')).join('')}</div>`;
+  if(ok.length) html+=`<div class="follow-section"><h3>Em dia <span class="alert-badge" style="background:#EAF3DE;color:#3B6D11">${ok.length}</span></h3>${ok.map(l=>fCard(l,'')).join('')}</div>`;
+  if(!ativos.length) html='<div class="empty-state">Nenhum lead ativo no funil.</div>';
+  document.getElementById('followup-view').innerHTML=html;
+}
+
+function fCard(l,cls){
+  const st=STAGES.find(s=>s.id===l.stage);
+  const days=daysAgo(l.lastContact);
+  const dc=cls==='urgent'?'#dc2626':cls==='warning'?'#BA7517':'#3B6D11';
+  const wppLink=l.wpp?`https://wa.me/55${l.wpp.replace(/\D/g,'')}?text=Oi+${encodeURIComponent(l.name.split(' ')[0])}!`:'';
+  const igLink=l.ig&&l.ig!=='—'?`https://instagram.com/${l.ig.replace('@','')}`:'';
+  
+  return `<div class="follow-card ${cls}" onclick="openDetail(${l.id})">
+    <div class="avatar" style="background:${st.bg};color:${st.color}">${l.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+    <div class="follow-info">
+      <div class="follow-name">${l.name} <span style="font-size:11px;color:var(--color-text-secondary);cursor:pointer" onclick="event.stopPropagation();if('${igLink}')window.open('${igLink}','_blank')">${l.ig}</span></div>
+      <div class="follow-sub" style="margin-top:3px">${originBadge(l.origem)} &nbsp;<span class="badge" style="background:${st.bg};color:${st.color};font-size:10px">${st.label}</span></div>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-top:3px">${l.interesse||'—'}</div>
+      <div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()">
+        ${wppLink?`<button class="qa-btn qa-btn-wpp" onclick="window.open('${wppLink}','_blank')">WhatsApp</button>`:''}
+        ${igLink?`<button class="qa-btn" style="border-color:#e1306c;color:#e1306c" onclick="window.open('${igLink}','_blank')">Instagram</button>`:''}
+        <button class="qa-btn" onclick="quickFollow(${l.id})">Marcar contato</button>
+      </div>
+    </div>
+    <div class="follow-days" style="color:${dc}">
+      <div class="days-num">${days}</div>
+      <div class="days-label">dias</div>
+    </div>
+  </div>`;
+}
+
+function quickFollow(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  l.lastContact=todayStr();
+  l.hist.push('Contato registrado via follow-up');
+  saveLeads();renderAll();
+}
+
+function renderDiags(){
+  const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  let groups = {};
+  leads.forEach(l => {
+    let dStr = l.dateAdded || l.lastContact || '';
+    let p = dStr.split('/');
+    if(p.length < 3) return;
+    let m = parseInt(p[1])-1;
+    if(m>=0 && m<=11) {
+      if(!groups[m]) groups[m] = {
+        total:0, call:0, fechado:0, 
+        ig: 0, wpp: 0, form: 0, web: 0, app: 0,
+        statusAtual: []
+      };
+      
+      groups[m].total++;
+      if(l.stage === 'proposta' || l.stage === 'contato' || l.stage === 'fechado' || l.hist.find(h=>h.toLowerCase().includes('call'))) groups[m].call++;
+      if(l.stage === 'fechado') groups[m].fechado++;
+      
+      if(l.origem==='instagram') groups[m].ig++;
+      else if(l.origem==='whatsapp') groups[m].wpp++;
+      else if(l.origem==='formulario') groups[m].form++;
+      else if(l.origem==='webinario') groups[m].web++;
+      else if(l.origem==='aplicacao') groups[m].app++;
+
+      const stLabel = STAGES.find(s=>s.id===l.stage)?.label;
+      if(stLabel && !groups[m].statusAtual.includes(stLabel)) groups[m].statusAtual.push(stLabel);
+    }
+  });
+
+  let html = `<div class="follow-section" style="margin-bottom:1.5rem">
+    <h3 style="margin-bottom:0">📊 Dashboard Analítico</h3>
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:1rem">Análise profunda de conversões, origens e saúde da base por mês.</p>
+    <table style="width:100%;text-align:left;border-collapse:collapse;margin-top:.5rem;font-size:12px;border: 1px solid var(--color-border-secondary);border-radius: var(--border-radius-lg);overflow:hidden">
+      <thead>
+        <tr style="background:#0F172A;color:#fff;">
+          <th style="padding:12px 10px;font-weight:600">Mês</th>
+          <th style="padding:12px 10px;font-weight:600">Leads</th>
+          <th style="padding:12px 10px;font-weight:600">Detalhamento de Origens</th>
+          <th style="padding:12px 10px;font-weight:600">Fizeram Call</th>
+          <th style="padding:12px 10px;font-weight:600">Converteram</th>
+          <th style="padding:12px 10px;font-weight:600">Taxa Conv.</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  
+  Object.keys(groups).sort((a,b)=>b-a).forEach(k => {
+    let m = parseInt(k);
+    let g = groups[m];
+    let taxa = g.total > 0 ? Math.round((g.fechado / g.total) * 100) : 0;
+    
+    html += `<tr style="border-bottom:1px solid var(--color-border-tertiary);background:var(--color-background-primary)">
+      <td style="padding:12px 10px;font-weight:500">${months[m]}</td>
+      <td style="padding:12px 10px;font-size:14px;font-weight:500">${g.total}</td>
+      <td style="padding:12px 10px">
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          ${g.ig>0 ? `<span style="background:#fce4ec;color:#880e4f;padding:2px 6px;border-radius:10px;font-size:10px">${g.ig} IG</span>` : ''}
+          ${g.wpp>0 ? `<span style="background:#e8f5e9;color:#1b5e20;padding:2px 6px;border-radius:10px;font-size:10px">${g.wpp} Wpp</span>` : ''}
+          ${g.form>0 ? `<span style="background:#EEF2FF;color:#3730a3;padding:2px 6px;border-radius:10px;font-size:10px">${g.form} Form</span>` : ''}
+          ${g.web>0 ? `<span style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:10px;font-size:10px">${g.web} Webnário</span>` : ''}
+          ${g.app>0 ? `<span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:10px;font-size:10px">${g.app} App</span>` : ''}
+        </div>
+      </td>
+      <td style="padding:12px 10px">${g.call}</td>
+      <td style="padding:12px 10px;color:#3B6D11;font-weight:500">${g.fechado} ${g.fechado===1?'produto':'produtos'}</td>
+      <td style="padding:12px 10px;color:${taxa>10?'#3B6D11':'var(--color-text-secondary)'}">${taxa}%</td>
+    </tr>`;
+  });
+  
+  html += `</tbody></table>
+  </div>
+  
+  <div class="follow-section">
+    <h3 style="margin-bottom:0">Formulários & Webnários (Reativação Quente)</h3>
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:1rem">Leads valiosos para puxar papo no direct ou WhatsApp hoje!</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:10px">
+  `;
+  
+  const formsIgPending = leads.filter(l=> (l.origem==='formulario'||l.origem==='instagram'||l.origem==='webinario'||l.origem==='aplicacao') && l.stage!=='fechado' && l.stage!=='perdido');
+  if(formsIgPending.length){
+    formsIgPending.forEach(l=>{
+      html += fCard(l,'warning');
+    });
+  } else {
+    html += '<div class="empty-state" style="grid-column:1/-1">Nenhum evento quente pendente de reativação!</div>';
+  }
+
+  html += '</div></div>';
+  document.getElementById('diags-view').innerHTML = html;
+}
+
+function renderComms() {
+  const inbox = leads.filter(l=>l.hist.length>0).sort((a,b)=>daysAgo(a.lastContact)-daysAgo(b.lastContact));
+  document.getElementById('comms-view').innerHTML = `
+    <div style="width:320px;border-right:1px solid #E2E8F0;background:#F8FAFC;overflow-y:auto">
+      ${inbox.map(l=>{
+        const lastMsg = l.hist[l.hist.length-1];
+        return `<div style="padding:12px 16px;border-bottom:1px solid #E2E8F0;cursor:pointer;background:#fff;border-left:3px solid ${l.origem==='whatsapp'?'#25D366':'#E1306C'}" onclick="openDetail(${l.id})">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-weight:600;font-size:13px;color:#0F172A">${l.name}</span>
+            <span style="font-size:10px;color:#64748B">${l.lastContact}</span>
+          </div>
+          <div style="font-size:12px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${lastMsg}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;padding:20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">💬</div>
+      <div style="color:#0F172A;font-weight:600;font-size:16px;margin-bottom:8px">Sua Inbox Unificada</div>
+      <div style="color:#64748B;font-size:14px;max-width:300px">Selecione uma conversa ao lado para ver o histórico e mover o Lead para o Kanban.</div>
+    </div>
+  `;
+}
+
+function renderCalendar() {
+  const ativos = leads.filter(l=>l.stage!=='fechado'&&l.stage!=='perdido');
+  const urgentes = ativos.filter(l=>daysAgo(l.lastContact)>=7);
+  const avisos = ativos.filter(l=>daysAgo(l.lastContact)>=3 && daysAgo(l.lastContact)<7);
+  const emDia = ativos.filter(l=>daysAgo(l.lastContact)<3);
+
+  let html = `<div style="display:flex;gap:24px;flex-wrap:wrap">`;
+
+  const renderGroup = (title, arr, colorClass, borderClass) => {
+    if(!arr.length) return '';
+    return `<div style="flex:1;min-width:300px;background:#fff;border-radius:8px;border:1px solid #E2E8F0;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05)">
+      <h3 style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <span style="width:12px;height:12px;border-radius:50%;background:${colorClass};display:inline-block"></span>
+        ${title} <span style="font-size:11px;background:#F1F5F9;padding:2px 8px;border-radius:10px;color:#475569">${arr.length}</span>
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${arr.map(l=>{
+          return `<div style="border:1px solid #E2E8F0;border-left:3px solid ${borderClass};padding:12px;border-radius:6px;background:#F8FAFC;cursor:pointer;transition:transform 0.1s" onclick="openDetail(${l.id})" onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='translateX(0)'">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:13px;font-weight:600;color:#0F172A">${l.name}</span>
+              ${originBadge(l.origem)}
+            </div>
+            <div style="font-size:11px;color:#64748B;margin-bottom:8px">Último contato há ${daysAgo(l.lastContact)} dias (${l.lastContact})</div>
+            <div style="font-size:11px;color:#334155;background:#E2E8F0;padding:4px 8px;border-radius:4px;display:inline-block">${STAGES.find(s=>s.id===l.stage)?.label||'Lead'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  };
+
+  html += renderGroup('Tarefas Urgentes (+7d)', urgentes, '#EF4444', '#EF4444');
+  html += renderGroup('Follow-ups Próximos (3 a 7d)', avisos, '#F59E0B', '#F59E0B');
+  html += renderGroup('Em dia', emDia, '#10B981', '#10B981');
+
+  html += `</div>`;
+  document.getElementById('calendar-view').innerHTML = html;
+}
+
+function renderListas() {
+  document.getElementById('listas-view').innerHTML = `
+    <div style="background:#fff;border-radius:12px;border:1px dashed #CBD5E1;padding:40px;text-align:center;max-width:600px;margin:0 auto;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+      <div style="font-size:40px;margin-bottom:16px;color:#2563EB">📥</div>
+      <h3 style="font-size:16px;font-weight:600;color:#0F172A;margin-bottom:8px">Importar lista de Leads via CSV</h3>
+      <p style="font-size:13px;color:#64748B;margin:0 auto 24px">Faça o upload de um arquivo .csv contendo colunas como "Nome", "Telefone", "Origem". O Fisionário converterá automaticamente para cartões no topo do funil de Entrada.</p>
+      
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;padding:16px;border-radius:8px;text-align:left;margin-bottom:24px;font-size:12px;color:#475569">
+        <strong>Padrão esperado (Opcional):</strong><br>
+        <code>Nome, WhatsApp, Instagam, Ex: João Silva, 11999999999, @joaosilva</code>
+      </div>
+
+      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="testCSV()">
+      <button class="btn btn-primary" style="padding:10px 24px;font-size:14px" onclick="document.getElementById('csv-file').click()">Selecionar Arquivo .CSV</button>
+      <div id="csv-res" style="margin-top:20px;font-size:14px;color:#059669;font-weight:500;min-height:20px"></div>
+    </div>
+  `;
+}
+
+window.testCSV = function() {
+  const res = document.getElementById('csv-res');
+  res.style.color = "#3B82F6";
+  res.textContent = "Processando arquivo...";
+  setTimeout(()=>{
+    res.style.color = "#059669";
+    res.textContent = "✅ 12 leads importados com sucesso! Redirecionando para o Funil...";
+    setTimeout(()=>switchPage('funis', document.querySelector('.sidebar-item:nth-child(3)')), 2000);
+  }, 1000);
+}
+
+function renderConfig() {
+  document.getElementById('config-view').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;max-width:1000px">
+      
+      <!-- WHATSAPP INTEGRATION -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:#E8F5E9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#25D366">💬</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:600;color:#0F172A;margin:0">API do WhatsApp</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0">Z-API, Evolution ou Baileys</p>
+          </div>
+        </div>
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:24px;text-align:center;margin-bottom:16px">
+          <div style="width:120px;height:120px;background:#fff;border:1px dashed #CBD5E1;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:8px">
+            <span style="font-size:40px;opacity:0.2">📱</span>
+          </div>
+          <p style="font-size:12px;color:#475569;margin:0">Leia o QR Code com seu WhatsApp para conectar seu número e puxar histórico para a Inbox.</p>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;background:#25D366;border-color:#25D366">Gerar QR Code</button>
+      </div>
+
+      <!-- INSTAGRAM INTEGRATION -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:#FCE4EC;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#E1306C">📷</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:600;color:#0F172A;margin:0">Instagram Direct</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0">Integração Oficial Meta API</p>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#475569;margin-bottom:20px">Conecte sua conta do Instagram Profissional (Business/Creator) vinculada a uma página do Facebook para responder Directs e marcações em Stories pelo CRM.</p>
+        
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border:1px solid #E2E8F0;border-radius:8px">
+            <span style="font-size:13px;font-weight:500;color:#0F172A">Status</span>
+            <span style="font-size:11px;background:#F1F5F9;padding:4px 8px;border-radius:12px;color:#64748B;font-weight:600">Desconectado</span>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;background:#1877F2;border-color:#1877F2">Conectar com Facebook</button>
+        </div>
+      </div>
+
+      <!-- RESPONDI WEBHOOK -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #E2E8F0;padding:24px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:40px;height:40px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#4F46E5">🔗</div>
+          <div>
+            <h3 style="font-size:16px;font-weight:600;color:#0F172A;margin:0">Receber Formulários</h3>
+            <p style="font-size:12px;color:#64748B;margin:2px 0 0">Respondi, Typeform, RD Station</p>
+          </div>
+        </div>
+        <p style="font-size:13px;color:#475569;margin-bottom:16px">Para que leads caiam sozinhos no funil assim que preencherem sua página de captura, cole a URL de disparo (Webhook) abaixo dentro das configurações da sua ferramenta.</p>
+        
+        <div style="margin-bottom:16px">
+          <label style="font-size:11px;font-weight:600;color:#475569;margin-bottom:4px;display:block">Sua URL do Webhook Restrita:</label>
+          <div style="display:flex;gap:8px">
+            <input readonly value="https://api.crmfisionario.com/v1/webhook/hx892kLp" style="flex:1;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1;background:#F8FAFC;color:#64748B;font-family:monospace">
+            <button class="btn" style="padding:8px 12px;font-size:12px;background:#fff;border:1px solid #CBD5E1;border-radius:6px" onclick="this.textContent='Copiado!';setTimeout(()=>this.textContent='Copiar',2000)">Copiar</button>
+          </div>
+        </div>
+        
+        <div style="background:#FFFBEB;border:1px solid #FEF3C7;border-left:3px solid #F59E0B;padding:12px;border-radius:6px;font-size:11px;color:#92400E">
+          O Respondi aceita "Postback URL" nativamente nas seções de Integração. O formato suportado é JSON com os campos "nome", "telefone" e "origem".
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+
+function renderAll(){renderStats();if(activeTab==='funil')renderFunil();else if(activeTab==='followup')renderFollowUp();else renderDiags();}
+
+function switchTab(tab,el){
+  activeTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.getElementById('view-funil').style.display=tab==='funil'?'block':'none';
+  document.getElementById('view-followup').style.display=tab==='followup'?'block':'none';
+  document.getElementById('view-diags').style.display=tab==='diags'?'block':'none';
+  if(tab==='followup')renderFollowUp();
+  if(tab==='diags')renderDiags();
+}
+
+function switchPage(pageId, btn) {
+  document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-'+pageId);
+  if(target) target.classList.add('active');
+  
+  const actions = document.querySelector('.topbar-actions');
+  if(actions) actions.style.display = (pageId==='funis'||pageId==='listas')?'flex':'none';
+  
+  if(pageId === 'insights') {
+    renderDiags();
+  } else if(pageId === 'comunicacoes') {
+    renderComms();
+  } else if(pageId === 'calendario') {
+    renderCalendar();
+  } else if(pageId === 'listas') {
+    renderListas();
+  } else if(pageId === 'configuracoes') {
+    renderConfig();
+  } else if(pageId === 'funis') {
+    renderFunil();
+  }
+}
+
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.tag-filter').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  renderFunil();
+}
+
+function openAddModal(){document.getElementById('addModal').classList.add('open');}
+
+function openDetail(id){
+  currentDetail=leads.find(l=>l.id===id);if(!currentDetail)return;
+  const l=currentDetail,st=STAGES.find(s=>s.id===l.stage);
+  document.getElementById('d-avatar').style.cssText=`width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0;background:${st.bg};color:${st.color}`;
+  document.getElementById('d-avatar').textContent=l.name.split(' ').map(w=>w[0]).slice(0,2).join('');
+  document.getElementById('d-name').textContent=l.name;
+  document.getElementById('d-sub').textContent=l.ig;
+  document.getElementById('d-wpp-val').textContent=l.wpp||'Não informado';
+  const wppBtn=document.getElementById('d-wpp-btn');
+  if(l.wpp){wppBtn.style.display='inline-block';wppBtn.onclick=()=>window.open(`https://wa.me/55${l.wpp.replace(/\D/g,'')}?text=Oi+${encodeURIComponent(l.name.split(' ')[0])}!`,'_blank');}
+  else{wppBtn.style.display='none';}
+  const igBtn=document.getElementById('d-ig-btn');
+  if(l.ig&&l.ig!=='—'){igBtn.style.display='inline-block';igBtn.onclick=()=>window.open(`https://instagram.com/${l.ig.replace('@','')}`,'_blank');}
+  else{igBtn.style.display='none';}
+  document.getElementById('d-interesse-val').textContent=l.interesse||'Não informado';
+  document.getElementById('d-badges').innerHTML=`${originBadge(l.origem)}<span class="badge" style="background:${st.bg};color:${st.color}">${st.label}</span>`;
+  document.getElementById('moveButtons').innerHTML=STAGES.filter(s=>s.id!==l.stage).map(s=>`<button class="move-btn" onclick="moveTo('${s.id}')" style="border-color:${s.color};color:${s.color}">${s.label}</button>`).join('');
+  
+  const firstName = l.name.split(' ')[0];
+  document.getElementById('scr-a').textContent = `"${firstName}, você ainda pensa naquilo que a gente conversou? Tenho algo que pode fazer sentido agora."`;
+  document.getElementById('scr-b').textContent = `"${firstName}, ainda tá nessa batalha com aquilo? Pergunto porque a gente tem ajudado muito com isso."`;
+  document.getElementById('scr-c').textContent = `"${firstName}, uma cliente aqui passou por algo muito parecido com o que você me contou. Posso te contar o que aconteceu?"`;
+  document.getElementById('scr-d').textContent = `"Oi ${firstName}! Faz tempo. Como você tá?"`;
+  document.getElementById('scr-e').textContent = `"${firstName}, vi uma coisa hoje que lembrei imediatamente de você. Posso te mandar?"`;
+  document.getElementById('scripts-section').style.display = 'none';
+  
+  renderHist();
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function renderHist(){
+  const l=currentDetail;
+  document.getElementById('d-hist').innerHTML=l.hist.length
+    ?l.hist.map(h=>`<div class="hist-item"><div class="hist-text">${h}</div><div class="hist-date">${l.lastContact||'—'}</div></div>`).join('')
+    :'<p style="font-size:12px;color:var(--color-text-secondary)">Nenhuma interação ainda.</p>';
+}
+
+function addHist(){
+  const inp=document.getElementById('new-hist');if(!inp.value.trim())return;
+  currentDetail.hist.push(inp.value.trim());
+  currentDetail.lastContact=todayStr();
+  inp.value='';
+  saveLeads();renderHist();renderStats();
+}
+
+function moveTo(stage){
+  currentDetail.stage=stage;
+  currentDetail.lastContact=todayStr();
+  currentDetail.hist.push(`Movida para: ${STAGES.find(s=>s.id===stage).label}`);
+  saveLeads();closeModals();renderAll();
+}
+
+function deleteLead(){
+  leads=leads.filter(l=>l.id!==currentDetail.id);
+  saveLeads();closeModals();renderAll();
+}
+
+function saveLead(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('Informe o nome da lead');return;}
+  const sel=document.getElementById('f-origem');
+  const origemVal=sel.options[sel.selectedIndex].value;
+  const obs=document.getElementById('f-obs').value.trim();
+  const ds=document.getElementById('f-data').value.trim();
+  leads.unshift({
+    id:nextId++,name,
+    ig:document.getElementById('f-ig').value||'—',
+    wpp:document.getElementById('f-wpp').value.replace(/\D/g,'')||'',
+    origem:origemVal,
+    interesse:document.getElementById('f-interesse').value||'',
+    stage:'novo',lastContact:todayStr(),dateAdded:ds||todayStr(),
+    hist:obs?[obs]:[]
+  });
+  ['f-name','f-ig','f-wpp','f-interesse','f-obs','f-data'].forEach(id=>document.getElementById(id).value='');
+  saveLeads();closeModals();renderAll();
+}
+
+function copyScript(id){
+  const txt=document.getElementById(id).textContent.replace(/"/g,'');
+  navigator.clipboard.writeText(txt).then(()=>alert('Copiado!')).catch(()=>{});
+}
+
+function closeModals(){document.querySelectorAll('.modal-bg').forEach(m=>m.classList.remove('open'));}
+function showQR(){document.getElementById('qrModal').classList.add('open');}
+function copyLink(){navigator.clipboard.writeText('https://wa.me/5511999990000?text=Oi!+Vim+pelo+Fision%C3%A1rio').then(()=>alert('Link copiado!')).catch(()=>alert('wa.me/5511999990000'));}
+
+document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)closeModals();});});
+
+loadLeads();
+</script>
