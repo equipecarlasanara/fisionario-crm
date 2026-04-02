@@ -1,0 +1,8 @@
+name = "crm-fisionario"
+compatibility_date = "2024-03-20"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fisionario_db"
+database_id = "6943db6f-4dbb-4560-86ce-f2e8791d38ba"
