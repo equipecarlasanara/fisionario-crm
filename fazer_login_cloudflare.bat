@@ -1,0 +1,4 @@
+::
+::
+npx wrangler login
+pause
