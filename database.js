@@ -17,6 +17,18 @@ db.serialize(() => {
     lastContact TEXT,
     hist TEXT -- JSON array das mensagens
   )`);
+
+  // Tabela de grupos VIP
+  db.run(`CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    status TEXT DEFAULT 'active',
+    leadsCount INTEGER DEFAULT 0,
+    investimentoSemana REAL DEFAULT 0,
+    investimentoTotal REAL DEFAULT 0,
+    link TEXT,
+    messages TEXT -- JSON array das mensagens do grupo
+  )`);
 });
 
 // Funções Helpers
@@ -78,11 +90,71 @@ const deleteLead = (id) => {
   });
 };
 
+// === Helpers GROUPS ===
+const getGroups = () => {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM groups", (err, rows) => {
+      if (err) return reject(err);
+      const data = rows.map(r => ({
+        ...r,
+        messages: r.messages ? JSON.parse(r.messages) : []
+      }));
+      resolve(data);
+    });
+  });
+};
+
+const insertGroup = (groupData) => {
+  return new Promise((resolve, reject) => {
+    const name = groupData.name || "Novo Grupo";
+    const status = groupData.status || "active";
+    const leadsCount = groupData.leadsCount || 0;
+    const invSemana = groupData.investimentoSemana || 0;
+    const invTotal = groupData.investimentoTotal || 0;
+    const link = groupData.link || "";
+    const messages = groupData.messages || [];
+
+    const stmt = db.prepare("INSERT INTO groups (name, status, leadsCount, investimentoSemana, investimentoTotal, link, messages) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    stmt.run([name, status, leadsCount, invSemana, invTotal, link, JSON.stringify(messages)], function(err) {
+      if (err) return reject(err);
+      resolve({ id: this.lastID, name, status, leadsCount, investimentoSemana: invSemana, investimentoTotal: invTotal, link, messages });
+    });
+    stmt.finalize();
+  });
+};
+
+const updateGroup = (id, groupData) => {
+  return new Promise((resolve, reject) => {
+    const { name, status, leadsCount, investimentoSemana, investimentoTotal, link, messages } = groupData;
+    db.run(
+      "UPDATE groups SET name=?, status=?, leadsCount=?, investimentoSemana=?, investimentoTotal=?, link=?, messages=? WHERE id=?",
+      [name, status, leadsCount, investimentoSemana, investimentoTotal, link, JSON.stringify(messages || []), id],
+      function(err) {
+        if (err) return reject(err);
+        resolve(this.changes);
+      }
+    );
+  });
+};
+
+const deleteGroup = (id) => {
+  return new Promise((resolve, reject) => {
+    db.run("DELETE FROM groups WHERE id = ?", [id], function(err) {
+      if(err) return reject(err);
+      resolve(this.changes);
+    });
+  });
+};
+
 module.exports = {
   db,
   getLeads,
   insertLead,
   updateLeadStage,
   updateLeadComplete,
-  deleteLead
+  deleteLead,
+  getGroups,
+  insertGroup,
+  updateGroup,
+  deleteGroup
 };

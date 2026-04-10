@@ -1,4 +1,4 @@
 ::
 ::
-npx --yes wrangler pages deploy public --project-name="crm-fisionario"
+npx --yes wrangler pages deploy public --project-name="fisionario-crm"
 pause

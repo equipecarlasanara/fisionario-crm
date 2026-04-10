@@ -54,6 +54,44 @@ app.post('/api/leads', async (req, res) => {
   }
 });
 
+// === API GROUPS ===
+
+app.get('/api/groups', async (req, res) => {
+  try {
+    const groups = await dbHelper.getGroups();
+    res.json(groups);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/groups', async (req, res) => {
+  try {
+    const newGroup = await dbHelper.insertGroup(req.body);
+    res.status(201).json(newGroup);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/groups/:id', async (req, res) => {
+  try {
+    await dbHelper.updateGroup(req.params.id, req.body);
+    res.json({ success: true });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/groups/:id', async (req, res) => {
+  try {
+    await dbHelper.deleteGroup(req.params.id);
+    res.json({ success: true });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // === INTEGRAÇÃO WEBHOOK RESPONDI ===
 app.post('/api/webhook/respondi', async (req, res) => {
   try {

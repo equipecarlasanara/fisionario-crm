@@ -217,7 +217,7 @@ body{font-family:var(--font-sans);background:var(--color-background-secondary);c
     <div id="page-grupos" class="page">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <h2 style="font-weight:500;color:#0F172A">👥 Gerenciamento de Grupos (Lançamentos VIP)</h2>
-        <button class="btn btn-primary" onclick="alert('Funcionalidade de criar novo grupo em breve!')">+ Novo Grupo</button>
+        <button class="btn btn-primary" onclick="tryCreateGroup()">+ Novo Grupo</button>
       </div>
       <div id="grupos-view"></div>
     </div>
@@ -370,35 +370,92 @@ const SAMPLE=[
   {id:7,name:'Tatiane Moura',ig:'@tatiane.m',wpp:'11933336666',origem:'formulario',interesse:'Acompanhamento mensal',stage:'novo',lastContact:'24/03/2026',dateAdded:'24/03/2026',hist:['Entrou pelo formulário público']},
 ];
 
-const MOCK_GROUPS = [
-  {
-    id: 1, 
-    name: 'Aula VIP - Abril/26', 
-    status: 'active',
-    leadsCount: 124, 
-    investimentoSemana: 150,
-    investimentoTotal: 450,
-    link: 'chat.whatsapp.com/ExAmPle123',
-    messages: [
-      { id: 101, text: 'Oi! Que bom ter você aqui. Nossa aula será dia 15/04 às 20h. Salve essa data!', scheduledDate: '10/04/2026', time: '09:00', sent: true },
-      { id: 102, text: 'Faltam apenas 3 dias para a nossa Aula VIP. O link será mandado aqui neste grupo.', scheduledDate: '12/04/2026', time: '12:00', sent: false },
-      { id: 103, text: 'É HOJE! Clica no link e vem pra sala: https://zoom.us/jh/123', scheduledDate: '15/04/2026', time: '19:50', sent: false }
-    ]
-  },
-  {
-    id: 2, 
-    name: 'Lista de Espera - Consultoria', 
-    status: 'active',
-    leadsCount: 45, 
-    link: 'chat.whatsapp.com/WaItliSt99',
-    messages: [
-      { id: 201, text: 'Bem-vindo à lista de espera! Amanhã liberaremos as 5 vagas.', scheduledDate: '01/05/2026', time: '10:00', sent: false },
-      { id: 202, text: 'Vagas liberadas! Clique aqui para agendar sua call comercial.', scheduledDate: '02/05/2026', time: '09:00', sent: false }
-    ]
-  }
-];
-
+let MOCK_GROUPS = [];
 let leads, nextId, currentFilter='todos', currentDetail=null, activeTab='funil';
+
+async function loadGroups() {
+  try {
+    const res = await fetch('/api/groups');
+    if(res.ok) {
+      MOCK_GROUPS = await res.json();
+    }
+  } catch(e) {
+    console.error('Erro ao carregar grupos', e);
+  }
+}
+
+async function syncGroup(group) {
+  try {
+    await fetch('/api/groups/' + group.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(group)
+    });
+    const s = document.getElementById('saving'); s.classList.add('show'); setTimeout(()=>s.classList.remove('show'), 1800);
+  } catch(e) {
+    console.error('Erro ao salvar grupo', e);
+  }
+}
+
+async function apiCreateGroup(name) {
+  try {
+    const res = await fetch('/api/groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if(res.ok) {
+      const newGroup = await res.json();
+      MOCK_GROUPS.unshift(newGroup);
+      window.currentEditGroup = newGroup.id;
+      renderGrupos();
+    }
+  } catch(e) {
+    console.error('Erro ao criar grupo', e);
+  }
+}
+
+async function tryCreateGroup() {
+  const name = prompt("Digite o nome do novo Lançamento/Grupo VIP:");
+  if(name) {
+    await apiCreateGroup(name);
+  }
+}
+
+function updateGroupField(id, field, value) {
+  let g = MOCK_GROUPS.find(x => x.id === id);
+  if (g) {
+    g[field] = value;
+    syncGroup(g);
+    renderGrupos();
+  }
+}
+
+function addGroupMessage(groupId, text, date, time) {
+  let g = MOCK_GROUPS.find(x => x.id === groupId);
+  if (g) {
+    if (!g.messages) g.messages = [];
+    g.messages.push({
+      id: Date.now(),
+      text,
+      scheduledDate: date,
+      time: time,
+      sent: false
+    });
+    syncGroup(g);
+    renderGrupos();
+  }
+}
+
+function removeGroupMessage(groupId, msgId) {
+  let g = MOCK_GROUPS.find(x => x.id === groupId);
+  if (g && g.messages) {
+    g.messages = g.messages.filter(m => m.id !== msgId);
+    syncGroup(g);
+    renderGrupos();
+  }
+}
+
 
 async function loadLeads(){
   try{
@@ -406,6 +463,7 @@ async function loadLeads(){
     if(res.ok) { leads = await res.json(); }
     else { leads = SAMPLE; }
   }catch(e){ leads = SAMPLE; }
+  await loadGroups();
   renderAll();
   switchPage('comunicacoes', document.querySelector('.sidebar-item.active'));
 }
@@ -1040,11 +1098,11 @@ function renderGrupos() {
             <div style="display:flex;gap:16px">
               <div style="flex:1">
                 <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Gasto nesta Semana (R$)</label>
-                <input type="number" placeholder="Ex: 150" value="${activeGroup.investimentoSemana || ''}" onchange="MOCK_GROUPS.find(x=>x.id==${activeGroup.id}).investimentoSemana = parseFloat(this.value) || 0" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
+                <input type="number" placeholder="Ex: 150" value="${activeGroup.investimentoSemana || ''}" onchange="updateGroupField(${activeGroup.id}, 'investimentoSemana', parseFloat(this.value)||0)" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
               </div>
               <div style="flex:1">
                 <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Gasto Total da Campanha (R$)</label>
-                <input type="number" placeholder="Ex: 500" value="${activeGroup.investimentoTotal || ''}" onchange="MOCK_GROUPS.find(x=>x.id==${activeGroup.id}).investimentoTotal = parseFloat(this.value) || 0" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
+                <input type="number" placeholder="Ex: 500" value="${activeGroup.investimentoTotal || ''}" onchange="updateGroupField(${activeGroup.id}, 'investimentoTotal', parseFloat(this.value)||0)" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
               </div>
             </div>
           </div>
@@ -1111,14 +1169,14 @@ function renderGrupos() {
         
         <div id="composer-avancado" style="display:none;background:#F8FAFC;border:2px dashed #CBD5E1;padding:16px;border-radius:8px;margin-bottom:20px" class="composer-toggle">
           <h4 style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:12px">Compor Mensagem VIP</h4>
-          <textarea placeholder="Digite sua mensagem de aquecimento..." style="width:100%;height:80px;padding:10px;font-size:13px;border-radius:6px;border:1px solid #CBD5E1;margin-bottom:12px"></textarea>
+          <textarea id="msg-text" placeholder="Digite sua mensagem de aquecimento..." style="width:100%;height:80px;padding:10px;font-size:13px;border-radius:6px;border:1px solid #CBD5E1;margin-bottom:12px"></textarea>
           
           <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:16px">
             <div style="flex:1;min-width:200px">
               <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Quando enviar?</label>
               <div style="display:flex;gap:8px">
-                <input type="date" style="flex:1;padding:6px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
-                <input type="time" style="width:90px;padding:6px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
+                <input type="date" id="msg-date" style="flex:1;padding:6px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
+                <input type="time" id="msg-time" style="width:90px;padding:6px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
               </div>
             </div>
             <div style="flex:1;min-width:200px">
@@ -1138,7 +1196,7 @@ function renderGrupos() {
           
           <div style="display:flex;justify-content:flex-end;gap:10px">
             <button class="btn" onclick="document.getElementById('composer-avancado')?.classList.remove('open')">Cancelar</button>
-            <button class="btn btn-primary" onclick="alert('Mensagem programada!')">Salvar Agendamento</button>
+            <button class="btn btn-primary" onclick="const t=document.getElementById('msg-text').value;const d=document.getElementById('msg-date').value;const hm=document.getElementById('msg-time').value;if(!t)return alert('Digite a mensagem.');addGroupMessage(${activeGroup.id}, t, d?d.split('-').reverse().join('/'):'', hm||'12:00')">Salvar Agendamento</button>
           </div>
         </div>
 
@@ -1164,7 +1222,7 @@ function renderGrupos() {
                   <div style="background:#fff;border:1px solid #E2E8F0;padding:12px;border-radius:6px;font-size:13px;color:#334155;line-height:1.5;white-space:pre-wrap;box-shadow:inset 0 2px 4px 0 rgba(0,0,0,0.02)">${m.text}</div>
                   <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
                     ${!m.sent ? `<button class="btn" style="padding:4px 10px;font-size:11px;color:#0F172A;border-color:#CBD5E1">Editar</button>` : ''}
-                    ${!m.sent ? `<button class="btn" style="padding:4px 10px;font-size:11px;color:#DC2626;border-color:#FCA5A5">Remover</button>` : ''}
+                    ${!m.sent ? `<button class="btn" onclick="removeGroupMessage(${activeGroup.id}, ${m.id})" style="padding:4px 10px;font-size:11px;color:#DC2626;border-color:#FCA5A5">Remover</button>` : ''}
                   </div>
                 </div>
               </div>
