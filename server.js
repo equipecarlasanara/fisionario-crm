@@ -92,6 +92,34 @@ app.delete('/api/groups/:id', async (req, res) => {
   }
 });
 
+// === Z-API (DISPARO DE WHATSAPP) ===
+app.post('/api/groups/:id/send', async (req, res) => {
+  try {
+    const groupId = req.params.id;
+    const { instanceId, token, messageText } = req.body;
+    
+    if(!instanceId || !token) {
+      return res.status(400).json({ error: "Credenciais da Z-API ausentes." });
+    }
+
+    console.log(`[Z-API] Disparando para o Grupo ${groupId}`);
+    console.log(`[Z-API] Instância: ${instanceId}`);
+    
+    // Simulação do envio (Substituir pela requisição real no futuro):
+    /*
+    const response = await fetch(`https://api.z-api.io/instances/${instanceId}/token/${token}/send-messages`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: "551199999999", message: messageText })
+    });
+    */
+
+    res.json({ success: true, message: "Mensagem enviada com sucesso pela Z-API!" });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // === INTEGRAÇÃO WEBHOOK RESPONDI ===
 app.post('/api/webhook/respondi', async (req, res) => {
   try {

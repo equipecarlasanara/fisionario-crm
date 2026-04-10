@@ -29,12 +29,15 @@ export async function onRequestPost(context) {
     const link = groupData.link || "";
     const messages = groupData.messages || [];
     
-    const result = await env.DB.prepare(
-      "INSERT INTO groups (name, status, leadsCount, investimentoSemana, investimentoTotal, link, messages) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id"
-    ).bind(name, status, leadsCount, invSemana, invTotal, link, JSON.stringify(messages)).first();
+    // Auto-create just in case POST is called first
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT DEFAULT 'active', leadsCount INTEGER DEFAULT 0, investimentoSemana REAL DEFAULT 0, investimentoTotal REAL DEFAULT 0, link TEXT, messages TEXT)").all();
+
+    const info = await env.DB.prepare(
+      "INSERT INTO groups (name, status, leadsCount, investimentoSemana, investimentoTotal, link, messages) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).bind(name, status, leadsCount, invSemana, invTotal, link, JSON.stringify(messages)).run();
     
     return new Response(JSON.stringify({ 
-      id: result.id, name, status, leadsCount, investimentoSemana: invSemana, investimentoTotal: invTotal, link, messages 
+      id: info.meta.last_row_id, name, status, leadsCount, investimentoSemana: invSemana, investimentoTotal: invTotal, link, messages 
     }), {
       status: 201,
       headers: { "Content-Type": "application/json" }
