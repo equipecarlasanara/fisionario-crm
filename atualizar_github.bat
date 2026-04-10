@@ -9,10 +9,10 @@ echo.
 git init
 git add .
 git commit -m "feat: atualizando modulos e integracoes do CRM"
-git branch -M main
+git branch -M principal
 git remote remove origin 2>nul
 git remote add origin https://github.com/equipecarlasanara/fisionario-crm.git
-git push -u origin main --force
+git push -u origin principal --force
 
 echo.
 echo ================================================================
