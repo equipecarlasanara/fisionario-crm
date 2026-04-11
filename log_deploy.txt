@@ -1,0 +1,11 @@
+Iniciando o deploy na Cloudflare... 
+
+ ⛅️ wrangler 4.81.1
+───────────────────
+✨ Compiled Worker successfully
+Uploading... (1/1)
+✨ Success! Uploaded 0 files (1 already uploaded) (0.32 sec)
+
+✨ Uploading Functions bundle
+🌎 Deploying...
+✨ Deployment complete! Take a peek over at https://034ab51a.fisionario-crm.pages.dev
