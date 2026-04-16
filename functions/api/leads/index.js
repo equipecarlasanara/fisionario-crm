@@ -8,6 +8,8 @@ export async function onRequestOptions() {
   return new Response(null, { status: 204, headers: corsHeaders });
 }
 
+
+
 export async function onRequestGet(context) {
   const { env } = context;
   try {
