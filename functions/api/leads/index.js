@@ -18,6 +18,8 @@ export async function onRequestGet(context) {
       ...r,
       hist: r.hist ? JSON.parse(r.hist) : []
     }));
+
+    
     return new Response(JSON.stringify(leads), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
