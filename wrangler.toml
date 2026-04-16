@@ -1,9 +1,11 @@
-name = "fisionario-crm"
-compatibility_date = "2024-03-20"
-pages_build_output_dir = "public"
+name = "crm-backend-fisionario"
+main = "src/index.js"
+compatibility_date = "2024-03-25"
 
 [[d1_databases]]
-binding = "DB"
-database_name = "fisionario_db"
+binding = "DB" # Nome usado no código para acessar o banco
+database_name = "crm_db"
 database_id = "6943db6f-4dbb-4560-86ce-f2e8791d38ba"
-preview_database_id = "6943db6f-4dbb-4560-86ce-f2e8791d38ba"
+
+[vars]
+VERIFY_TOKEN = "TOKEN_SECRETO_PARA_FACEBOOK"

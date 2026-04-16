@@ -375,7 +375,7 @@ let leads, nextId, currentFilter='todos', currentDetail=null, activeTab='funil';
 
 async function loadGroups() {
   try {
-    const res = await fetch('/api/groups');
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/groups');
     if(res.ok) {
       MOCK_GROUPS = await res.json();
     } else {
@@ -389,7 +389,7 @@ async function loadGroups() {
 
 async function syncGroup(group) {
   try {
-    await fetch('/api/groups/' + group.id, {
+    await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/groups/' + group.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(group)
@@ -402,7 +402,7 @@ async function syncGroup(group) {
 
 async function apiCreateGroup(name) {
   try {
-    const res = await fetch('/api/groups', {
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/groups', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name })
@@ -466,7 +466,7 @@ function removeGroupMessage(groupId, msgId) {
 
 async function loadLeads(){
   try{
-    const res = await fetch('/api/leads');
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/leads');
     if(res.ok) { leads = await res.json(); }
     else { leads = SAMPLE; }
   }catch(e){ leads = SAMPLE; }
@@ -477,7 +477,7 @@ async function loadLeads(){
 
 async function syncLead(lead) {
   try {
-    await fetch('/api/leads/' + lead.id, {
+    await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/leads/' + lead.id, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lead)
@@ -487,12 +487,12 @@ async function syncLead(lead) {
 }
 
 async function apiDeleteLead(id) {
-  try { await fetch('/api/leads/' + id, {method: 'DELETE'}); } catch(e) {}
+  try { await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/leads/' + id, {method: 'DELETE'}); } catch(e) {}
 }
 
 async function apiCreateLead(lead) {
   try {
-    const res = await fetch('/api/leads', {
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(lead)
@@ -941,7 +941,7 @@ window.sendChatMsg = async function(leadId, msg) {
   document.getElementById('chat-input').value = 'Enviando...';
   
   try {
-    const res = await fetch('/api/zapi', {
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/zapi', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ instanceId: iId, token: tok, phone: targetPhone, messageText: msg })
@@ -1057,9 +1057,13 @@ function renderConfig() {
               <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Token da Instância</label>
               <input id="zapi-token" placeholder="Ex: AA20921B2A10419..." value="${localStorage.getItem('zapi_token')||''}" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
             </div>
+            <div>
+              <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Client Token da Instância</label>
+              <input id="zapi-client-token" placeholder="Ex: Fx9A2Bx..." value="${localStorage.getItem('zapi_client_token')||''}" style="width:100%;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1">
+            </div>
           </div>
         </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;background:#25D366;border-color:#25D366" onclick="localStorage.setItem('zapi_instance', document.getElementById('zapi-instance').value); localStorage.setItem('zapi_token', document.getElementById('zapi-token').value); this.textContent='✅ Salvo com sucesso!'; setTimeout(()=>{this.textContent='Salvar Credenciais'},2000)">Salvar Credenciais</button>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;background:#25D366;border-color:#25D366" onclick="localStorage.setItem('zapi_instance', document.getElementById('zapi-instance').value); localStorage.setItem('zapi_token', document.getElementById('zapi-token').value); localStorage.setItem('zapi_client_token', document.getElementById('zapi-client-token').value); this.textContent='✅ Salvo com sucesso!'; setTimeout(()=>{this.textContent='Salvar Credenciais'},2000)">Salvar Credenciais</button>
       </div>
 
       <!-- INSTAGRAM INTEGRATION -->
@@ -1177,7 +1181,7 @@ function renderGrupos() {
             <p style="font-size:11px;color:#64748B;margin-bottom:12px">Este é o telefone ou o ID Exato do seu grupo no WhatsApp (Ex: 1203631234567@g.us ou 5511999999999) para a Z-API saber onde disparar as mensagens deste lançamento.</p>
             <div style="display:flex;gap:8px">
               <input placeholder="Digite o ID do grupo na Z-API ou Telefone..." value="${activeGroup.link || ''}" onchange="updateGroupField(${activeGroup.id}, 'link', this.value)" style="flex:1;padding:8px 12px;font-size:12px;border-radius:6px;border:1px solid #CBD5E1;color:#0F172A">
-              <button class="btn btn-primary" onclick="alert('Conexão Salva!')">Conectar Grupo</button>
+              <button class="btn btn-primary" onclick="autoFetchGroups(this, ${activeGroup.id})">🔍 Buscar do Z-API</button>
             </div>
           </div>
           <!-- Redirecionamentos -->
@@ -1267,7 +1271,7 @@ function renderGrupos() {
       html += `
         <div style="display:flex;justify-content:space-between;margin-bottom:16px;align-items:center;">
           <h4 style="font-size:14px;font-weight:600;color:#0F172A;margin:0">Envio Imediato & Automatizado</h4>
-          <button class="btn btn-primary" style="background:#25D366;border-color:#25D366" onclick="document.getElementById('composer-avancado')?.classList.toggle('open')">+ Nova Mensagem Avançada</button>
+          <button class="btn btn-primary" style="background:#25D366;border-color:#25D366" onclick="const c=document.getElementById('composer-avancado'); if(c) c.style.display = c.style.display==='none'?'block':'none'">+ Nova Mensagem Avançada</button>
         </div>
         
         <!-- Mensagem Rápida no Grupo -->
@@ -1360,6 +1364,7 @@ function renderGrupos() {
 async function dispararZAPI(groupId, btnElement, msgText, phoneTarget) {
   const iId = localStorage.getItem('zapi_instance');
   const tok = localStorage.getItem('zapi_token');
+  const ctok = localStorage.getItem('zapi_client_token') || "";
   if(!iId || !tok) {
     alert("Por favor, vá em Configurações e salve suas credenciais da Z-API primeiro!");
     return;
@@ -1374,10 +1379,10 @@ async function dispararZAPI(groupId, btnElement, msgText, phoneTarget) {
   btnElement.style.opacity = 0.5;
 
   try {
-    const res = await fetch('/api/zapi', {
+    const res = await fetch('https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/zapi', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ instanceId: iId, token: tok, messageText: msgText, phone: phoneTarget })
+      body: JSON.stringify({ instanceId: iId, token: tok, clientToken: ctok, messageText: msgText, phone: phoneTarget })
     });
     const result = await res.json();
     if(result.error) throw new Error(result.error);
@@ -1391,6 +1396,54 @@ async function dispararZAPI(groupId, btnElement, msgText, phoneTarget) {
     btnElement.style.opacity = 1;
   }
 }
+
+window.autoFetchGroups = async function(btn, groupId) {
+  const iId = localStorage.getItem('zapi_instance');
+  const tok = localStorage.getItem('zapi_token');
+  const ctok = localStorage.getItem('zapi_client_token') || "";
+  
+  if(!iId || !tok) return alert('Credenciais da Z-API não configuradas na aba Configurações!');
+  
+  btn.textContent = "Buscando...";
+  try {
+     const res = await fetch(`https://crm-backend-fisionario.equipecarlasanara.workers.dev/api/zapi/groups?instanceId=${iId}&token=${tok}&clientToken=${ctok}`);
+     const groups = await res.json();
+     if(groups.error) throw new Error(groups.error);
+     if(!Array.isArray(groups)) throw new Error("A lista voltou em formato estranho. Verifique as credenciais.");
+     
+     let selectHtml = '<select id="zg-select" style="padding:8px;font-size:13px;width:100%;border-radius:6px;border:1px solid #CBD5E1;margin-bottom:12px"><option>Selecione seu verdadeiro Grupo do WhatsApp...</option>';
+     groups.forEach(g => {
+        selectHtml += `<option value="${g.phone}">${g.name} (${g.phone})</option>`;
+     });
+     selectHtml += '</select>';
+     
+     const modalStr = `
+       <div id="zapi-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:99999">
+          <div style="background:#fff;padding:24px;border-radius:12px;width:450px;text-align:left;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+            <h3 style="margin:0 0 16px 0;font-size:18px;color:#0F172A">📲 Seus Grupos do WhatsApp</h3>
+            <p style="font-size:12px;color:#64748B;margin-top:0;margin-bottom:16px">Selecione o grupo correto abaixo para vincular o código gigante original do grupo ao CRM Fisionário.</p>
+            ${selectHtml}
+            <div style="margin-top:10px;display:flex;justify-content:flex-end;gap:10px">
+               <button class="btn" onclick="document.getElementById('zapi-modal').remove()">Cancelar</button>
+               <button class="btn btn-primary" style="background:#2563EB" onclick="
+                  const sel = document.getElementById('zg-select');
+                  if(sel.selectedIndex === 0) return alert('Selecione um grupo primeiro!');
+                  updateGroupField(${groupId}, 'link', sel.value);
+                  document.getElementById('zapi-modal').remove();
+                  alert('✅ O código real do grupo foi vinculado ao CRM!');
+               ">Vincular Grupo Mágico</button>
+            </div>
+          </div>
+       </div>
+     `;
+     document.body.insertAdjacentHTML('beforeend', modalStr);
+     btn.textContent = "🔍 Buscar do Z-API";
+  } catch(e) {
+     alert("Erro ao pescar grupos: " + e.message);
+     btn.textContent = "🔍 Buscar do Z-API";
+  }
+}
+
 
 function renderAll(){renderStats();if(activeTab==='funil')renderFunil();else if(activeTab==='followup')renderFollowUp();else renderDiags();}
 
